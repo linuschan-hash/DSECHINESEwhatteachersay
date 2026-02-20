@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《師說》溫習網頁（最終精修版）</title>
+    <style>
+        /* --- 1. 全局及佈局樣式 --- */
+        body {
+            font-family: 'Microsoft JhengHei', 'Heiti TC', 'PingFang TC', sans-serif;
+            line-height: 1.8;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e0f2f1, #f8f9fa, #fff3e0);
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: rgba(128, 179, 174, 0.8);
+            color: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 3em;
+        }
+        #daily-quote {
+            margin-top: 20px;
+            font-size: 1.2em;
+            font-style: italic;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-left: 5px solid #00796b;
+            border-radius: 5px;
+            color: #333;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            background-color: #00796b;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        nav a:hover, nav a.active {
+            background-color: #004d40;
+        }
+        .page-section {
+            display: none; /* 關鍵：默認隱藏所有頁面區塊 */
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h2 {
+            color: #00796b;
+            border-bottom: 3px solid #004d40;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        h3 {
+             color: #004d40;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            color: #555;
+        }
+
+        /* --- 2. 各頁面專屬樣式 --- */
+        /* 主頁 */
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .home-card {
+            background: white; padding: 25px; border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08); cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 5px solid #80cbc4;
+        }
+        .home-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .home-card h3 { margin-top: 0; }
+
+        /* 作者與賞析 */
+        .author-grid, .full-text-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (min-width: 768px) {
+            .author-grid, .full-text-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .original { font-family: 'KaiTi', 'BiauKai', serif; }
+
+        /* 字詞 */
+        .vocab-table { width: 100%; border-collapse: collapse; }
+        .vocab-table th, .vocab-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        .vocab-table th { background-color: #e0f2f1; color: #00796b; }
+        .vocab-table tr:nth-child(even) { background-color: #f8f9fa; }
+
+        /* 結構、手法、思辨 */
+        .structure-card, .technique-block {
+            background-color: #f8f9fa; border: 1px solid #dee2e6;
+            border-left: 5px solid #00796b; padding: 20px;
+            margin-bottom: 25px; border-radius: 8px;
+        }
+        .structure-card h3 { font-size: 1.5em; }
+        .structure-card .main-point {
+            font-size: 1.2em; font-weight: bold; color: #c62828;
+            background: #ffebee; padding: 10px; border-radius: 5px; text-align: center;
+        }
+        .structure-card .sub-point {
+            margin-left: 20px; border-left: 3px solid #80cbc4;
+            padding-left: 15px; margin-top: 15px;
+        }
+        .sub-point h4, .technique-block h4 { color: #00796b; font-size: 1.2em; }
+        .argument-block {
+            margin-left: 20px; padding-left: 15px;
+            border-left: 2px dashed #b2dfdb; margin-top: 10px;
+        }
+        .argument-block strong, .technique-block strong { color: #33691e; }
+        .argument-block blockquote, .technique-block blockquote {
+            font-family: 'KaiTi', 'BiauKai', serif; background-color: #e8f5e9;
+            padding: 10px; border-radius: 4px; margin: 10px 0;
+            border-left: 3px solid #a5d6a7;
+        }
+        .technique-section { margin-bottom: 30px; }
+
+        /* 每日挑戰 */
+        .question-block {
+            margin-bottom: 25px; padding: 20px; background-color: #f8f9fa;
+            border-radius: 8px; border-left: 5px solid #00796b;
+        }
+        .question-block h3 { margin-top: 0; }
+        .question-item { margin-bottom: 15px; }
+        .question-item label { display: block; margin-bottom: 5px; cursor: pointer; }
+        .question-item input[type="text"], .question-item textarea {
+            width: 95%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;
+        }
+        .question-item textarea { resize: vertical; min-height: 100px; }
+        .mc-option { margin-bottom: 5px; }
+        #submit-answers-btn {
+            background-color: #00796b; color: white; padding: 12px 25px;
+            border: none; border-radius: 5px; cursor: pointer; font-size: 1.1em;
+            transition: background-color 0.3s; display: block; margin: 20px auto 0;
+        }
+        #submit-answers-btn:hover { background-color: #004d40; }
+        .feedback { margin-top: 10px; padding: 10px; border-radius: 5px; font-weight: bold; }
+        .correct { border: 2px solid #28a745; background-color: #e9f5e9; }
+        .incorrect { border: 2px solid #dc3545; background-color: #fdecea; }
+        .correct .feedback { color: #155724; }
+        .incorrect .feedback { color: #721c24; }
+        .model-answer {
+            margin-top: 10px; padding: 15px; background-color: #e0f2f1;
+            border-radius: 5px; border: 1px solid #b2dfdb;
+        }
+        .model-answer h4 { margin-top: 0; }
+        #score-display {
+            font-size: 1.5em; font-weight: bold; text-align: center;
+            padding: 20px; background-color: #fff3e0; border-radius: 8px;
+            margin-bottom: 20px; color: #e65100;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>《師說》溫習網頁</h1>
+            <div id="daily-quote"></div>
+        </header>
+
+        <nav>
+            <a data-page="home" class="nav-link active">主頁</a>
+            <a data-page="author" class="nav-link">作者與時局</a>
+            <a data-page="vocab" class="nav-link">字詞溫習閣</a>
+            <a data-page="appreciation" class="nav-link">全文賞析</a>
+            <a data-page="structure" class="nav-link">文章結構</a>
+            <a data-page="main-idea" class="nav-link">主旨大意</a>
+            <a data-page="techniques" class="nav-link">寫作手法</a>
+            <a data-page="thinking" class="nav-link">進階思辨</a>
+            <a data-page="challenge" class="nav-link">每日挑戰</a>
+        </nav>
+
+        <main>
+            <!-- 主頁面 -->
+            <section id="home" class="page-section" style="display: block;">
+                <h2>歡迎來到《師說》互動溫習平台</h2>
+                <p>本網頁已將所有學習模組整合於此，旨在提供一個全面、深入且具互動性的《師說》學習平台。</p>
+                <p>請點擊上方導航列的各個按鈕，平滑切換至不同功能區塊。所有內容均已更新並加強，特別是「文章結構」和「寫作手法」部分。</p>
+                <div class="home-grid">
+                    <div class="home-card" onclick="showPage('structure')">
+                        <h3>文章結構</h3>
+                        <p>以主論點、分論點、論證、論據的形式，深入剖析文章的論證層次。</p>
+                    </div>
+                     <div class="home-card" onclick="showPage('techniques')">
+                        <h3>寫作手法</h3>
+                        <p>清晰劃分論證方法與修辭手法，提供詳盡的原文示例分析。</p>
+                    </div>
+                    <div class="home-card" onclick="showPage('challenge')">
+                        <h3>每日挑戰</h3>
+                        <p>15道全新題型，包含詞語、選擇題和高難度問答，並提供即時評分功能。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 作者與時局 -->
+            <section id="author" class="page-section">
+                <h2>作者生平簡介及當時的時局風氣分析</h2>
+                <div class="author-grid">
+                    <div>
+                        <h3>作者：韓愈 (768-824)</h3>
+                        <p>字退之，唐代文學家、哲學家、思想家，河陽（今河南孟州）人，自稱「郡望昌黎」，世稱「韓昌黎」。</p>
+                        <p>韓愈是「唐宋八大家」之一，與柳宗元同為「古文運動」的領袖，二人合稱「韓柳」。他提出「文以載道」、「詞必己出」、「唯陳言之務去」等文學主張，反對六朝以來浮靡的駢文，提倡樸實無華、內容充實的散文。</p>
+                        <p>本文《師說》約作於唐德宗貞元十八年（802年），當時韓愈三十五歲，任國子監四門博士，官位不高，但他公開招收學生，不避流俗譏笑，此舉在當時「恥學於師」的風氣下，實屬難能可貴。</p>
+                    </div>
+                    <div>
+                        <h3>時局風氣分析</h3>
+                        <p>中唐時期，社會上普遍存在「恥學於師」的風氣。士大夫之族多憑藉門第背景入仕，輕視學問，認為從師學習是可恥之事，尤其是向比自己年輕或地位低的人學習。</p>
+                        <p>柳宗元在《答韋中立論師道書》中描述：「由魏晉氏以下，人益不事師。今之世不聞有師，有，輒譁笑之，以為狂人。」</p>
+                        <p>韓愈撰寫《師說》，正是為了抨擊此種不良風氣，闡明從師的必要性、擇師的準則，提倡「道之所存，師之所存也」的核心思想，希望能扭轉當時輕視師道的社會風氣。</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 字詞溫習閣 -->
+            <section id="vocab" class="page-section">
+                <h2>字詞溫習閣</h2>
+                <p>本部分內容根據您提供的《師說》詞解預習工作紙整理而成。</p>
+                <table class="vocab-table">
+                    <thead>
+                        <tr><th>句子中的詞語</th><th>意思</th><th>句子中的詞語</th><th>意思</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>傳<strong>道</strong></td><td>道理/儒家道統</td><td>不恥相<strong>師</strong></td><td>互相</td></tr>
+                        <tr><td><strong>受</strong>業</td><td>講授</td><td>官盛則近<strong>諛</strong></td><td>諂媚</td></tr>
+                        <tr><td>解<strong>惑</strong></td><td>疑難/疑惑</td><td>君子不<strong>齒</strong></td><td>提及/並列</td></tr>
+                        <tr><td><strong>孰</strong>能無惑</td><td>誰</td><td>聖人無<strong>常</strong>師</td><td>固定</td></tr>
+                        <tr><td>其<strong>聞</strong>道也</td><td>聽到</td><td>其可怪也<strong>歟</strong></td><td>啊（表感嘆）</td></tr>
+                        <tr><td><strong>固</strong>先乎吾</td><td>本來</td><td>術業有專<strong>攻</strong></td><td>研究</td></tr>
+                        <tr><td>吾從而<strong>師</strong>之</td><td>學習</td><td><strong>術業</strong>有專攻</td><td>學問和技藝</td></tr>
+                        <tr><td>夫<strong>庸</strong>知其年之先後生於吾乎？</td><td>哪裡/難道</td><td>皆<strong>通習</strong>之</td><td>通曉熟習</td></tr>
+                        <tr><td>其<strong>出</strong>人也遠矣</td><td>超出</td><td>不<strong>拘</strong>於時</td><td>拘泥</td></tr>
+                        <tr><td>其<strong>下</strong>聖人也遠矣</td><td>低於</td><td>今之<strong>眾人</strong></td><td>一般人</td></tr>
+                        <tr><td><strong>猶且</strong>從師而問</td><td>尚且</td><td>學於<strong>余</strong></td><td>我</td></tr>
+                        <tr><td>聖<strong>益</strong>聖</td><td>更加</td><td>余<strong>嘉</strong>其能行古道</td><td>讚許</td></tr>
+                        <tr><td>吾未見其<strong>明</strong>也</td><td>明智</td><td>作《師說》以<strong>貽</strong>之</td><td>贈送</td></tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 全文賞析 -->
+            <section id="appreciation" class="page-section">
+                <h2>全文賞析</h2>
+                <div class="full-text-container">
+                    <div class="original">
+                        <h3>《師說》原文</h3>
+                        <p>古之學者必有師。師者，所以傳道、受業、解惑也。人非生而知之者，孰能無惑？惑而不從師，其為惑也，終不解矣。生乎吾前，其聞道也，固先乎吾，吾從而師之；生乎吾後，其聞道也，亦先乎吾，吾從而師之。吾師道也，夫庸知其年之先後生於吾乎？是故無貴無賤，無長無少，道之所存，師之所存也。</p>
+                        <p>嗟乎！師道之不傳也久矣！欲人之無惑也難矣！古之聖人，其出人也遠矣，猶且從師而問焉；今之眾人，其下聖人也亦遠矣，而恥學於師。是故聖益聖，愚益愚。聖人所以為聖，愚人所以為愚，其皆出於此乎！</p>
+                        <p>愛其子，擇師而教之；於其身也，則恥師焉，惑矣！彼童子之師，授之書而習其句讀者，非吾所謂傳其道、解其惑者也。句讀之不知，惑之不解，或師焉，或不焉，小學而大遺，吾未見其明也。</p>
+                        <p>巫、醫、樂師、百工之人，不恥相師。士大夫之族，曰師、曰弟子云者，則羣聚而笑之。問之，則曰：「彼與彼年相若也，道相似也。位卑則足羞，官盛則近諛。」嗚呼！師道之不復可知矣。巫、醫、樂師、百工之人，君子不齒，今其智乃反不能及，其可怪也歟！</p>
+                        <p>聖人無常師。孔子師郯子、萇弘、師襄、老聃。郯子之徒，其賢不及孔子。孔子曰：「三人行，則必有我師。」是故弟子不必不如師，師不必賢於弟子，聞道有先後，術業有專攻，如是而已。</p>
+                        <p>李氏子蟠，年十七，好古文，六藝經傳，皆通習之，不拘於時，學於余。余嘉其能行古道，作《師說》以貽之。</p>
+                    </div>
+                    <div>
+                        <h3>語體文翻譯</h3>
+                        <p>古代求學的人必定有老師。老師，是用來傳授道理、講授學業、解答疑難問題的。人不是生下來就懂得道理的，誰能沒有疑惑呢？有疑惑卻不跟從老師學習，那疑惑就永遠不能解決了。出生在我之前的人，他懂得道理本來就比我早，我應當跟從他學習；出生在我之後的人，如果他懂得道理也比我早，我也應當跟從他學習。我學習的是道理，哪用管他的年齡比我大還是比我小呢？因此，無論地位高低貴賤，無論年長年幼，道理存在的地方，就是老師存在的地方。</p>
+                        <p>唉！從師學習的風氣失傳很久了，想要人沒有疑惑也困難了！古代的聖人，他們的才智學問遠遠超過一般人，尚且跟從老師請教；現在的一般人，他們的才智學問比聖人差得很遠，卻以向老師學習為恥。所以聖人更加聖明，愚人更加愚蠢。聖人之所以成為聖人，愚人之所以成為愚人，大概都是出於這個原因吧！</p>
+                        <p>人們愛自己的孩子，會選擇老師來教他；但對自己，卻以從師學習為恥，真是糊塗啊！那些孩子的老師，是教他們讀書、學習句讀的，不是我所說的傳授道理、解答疑惑的老師。句讀不明白，向老師學習；疑惑不能解，卻不向老師學習，小的方面學習，大的方面卻遺漏了，我沒看出他的高明之處。</p>
+                        <p>巫醫、樂師、各種工匠，不以互相學習為恥。士大夫這類人，一聽說「老師」、「弟子」的稱呼，就聚在一起嘲笑。問他們笑什麼，他們就說：「那人和我年紀差不多，學問也差不多。向地位低的人學習，就覺得可恥；向官位高的人學習，就近乎諂媚。」唉！從師的風氣不能恢復，從這裡可以知道了。巫醫、樂師和各種工匠，是君子所不屑一提的，現在他們的智慧反而比不上這些人，這不是很奇怪嗎？</p>
+                        <p>聖人沒有固定的老師。孔子曾拜郯子、萇弘、師襄、老聃為師。郯子這些人，他們的賢能比不上孔子。孔子說：「三個人走在一起，其中一定有可以當我老師的人。」因此，學生不一定不如老師，老師也不一定比學生賢能，懂得道理有早有晚，學問技能各有專長，如此罷了。</p>
+                        <p>李家的孩子叫李蟠，十七歲，喜歡古文，《六經》的經文和傳注都已通曉，他不受當時風氣的影響，向我學習。我讚許他能實行古人從師學習的道理，寫了這篇《師說》來贈送給他。</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 文章結構頁面 -->
+            <section id="structure" class="page-section">
+                <h2>文章結構深度分析</h2>
+                <div class="structure-card">
+                    <h3>第一部分（第1段）：立論</h3>
+                    <p class="main-point">全文主論點：學者必有師，而擇師的標準在於「道」之有無，而非年齡、貴賤。</p>
+                    <div class="sub-point">
+                        <h4>分論點一：從師是求學的必要條件。</h4>
+                        <div class="argument-block"><p><strong>論證：</strong>首先定義老師「傳道、受業、解惑」的職能，再從「人非生而知之者，孰能無惑」的人性通則出發，推導出「惑而不從師，其為惑也，終不解矣」的結論，確立從師的必要性。</p></div>
+                    </div>
+                    <div class="sub-point">
+                        <h4>分論點二：擇師的唯一標準是「道」。</h4>
+                        <div class="argument-block"><p><strong>論證：</strong>通過「生乎吾前」與「生乎吾後」的對稱句式，闡明無論長幼，只要「聞道」在先，即可為師，從而確立「道之所存，師之所存也」的核心擇師觀。</p></div>
+                    </div>
+                </div>
+                <div class="structure-card">
+                    <h3>第二部分（第2-4段）：駁論</h3>
+                     <p class="main-point">主論點：批判當時士大夫「恥學於師」的錯誤風氣及其荒謬性。</p>
+                    <div class="sub-point">
+                        <h4>分論點一：「恥學於師」是導致「聖愚之分」的關鍵。</h4>
+                        <div class="argument-block"><p><strong>論證：</strong>以「古之聖人」樂於從師而「益聖」，對比「今之眾人」恥於學師而「益愚」，揭示「恥學於師」的嚴重後果。</p></div>
+                    </div>
+                    <div class="sub-point">
+                        <h4>分論點二：士大夫「於其身也，則恥師焉」的做法自相矛盾，極為不智。</h4>
+                        <div class="argument-block"><p><strong>論證：</strong>以士大夫「愛其子，擇師而教之」的行為，反襯其自身恥於從師的荒謬，並指出其「小學而大遺」的不明智。</p></div>
+                    </div>
+                     <div class="sub-point">
+                        <h4>分論點三：士大夫的見識甚至不如「百工之人」。</h4>
+                        <div class="argument-block"><p><strong>論證：</strong>以「巫、醫、樂師、百工之人」不恥相師的開明，對比士大夫因「位卑則足羞，官盛則近諛」而嘲笑師道的鄙俗心態，作出「其智乃反不能及」的辛辣諷刺。</p></div>
+                    </div>
+                </div>
+                <div class="structure-card">
+                    <h3>第三部分（第5段）：重申與深化</h3>
+                     <p class="main-point">主論點：以聖人為例，重申「師無常師」和「能者為師」的擇師觀。</p>
+                    <div class="sub-point">
+                        <h4>分論點：老師和學生是相對的，不必不如師，師不必賢於弟子。</h4>
+                        <div class="argument-block"><p><strong>論證：</strong>引用孔子向郯子等人學習的史例，以及「三人行，則必有我師」的語例，證明「聖人無常師」。由此推導出「聞道有先後，術業有專攻」的結論，打破傳統尊卑觀念。</p></div>
+                    </div>
+                </div>
+                <div class="structure-card">
+                    <h3>第四部分（第6段）：總結</h3>
+                    <div class="argument-block" style="border:none; margin-left:0; padding-left:0;">
+                        <p><strong>總結：</strong>交代寫作緣由。以李蟠「不拘於時，學於余」的具體行動為正面榜樣，點明此文是為嘉許其「能行古道」而作，用實例收束全文，並再次肯定文章主旨。</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 主旨大意 -->
+            <section id="main-idea" class="page-section">
+                <h2>主旨大意</h2>
+                <div class="technique-block" style="background-color: #e3f2fd; border-left-color: #2196f3;">
+                    <p>本文通過論述從師學習的重要性、老師的職責以及選擇老師的準則，批判了中唐時期士大夫階層**「恥學於師」**的錯誤觀念和不良風氣。</p>
+                    <p>文章提倡以**「道」**為師，學者不應受年齡、地位、貴賤等外在條件限制，並闡明了**「聞道有先後，術業有專攻」**的道理，最終目的是希望能夠恢復古代從師問學的優良傳統。</p>
+                </div>
+            </section>
+
+            <!-- 寫作手法 -->
+            <section id="techniques" class="page-section">
+                <h2>寫作手法</h2>
+                <div class="technique-section">
+                    <h3>一、論證方法</h3>
+                    <div class="technique-block">
+                        <h4>1. 對比論證</h4>
+                        <p>文章多處運用對比，使論點更加鮮明突出。</p>
+                        <ul>
+                            <li><strong>古聖與今人對比：</strong><blockquote>古之聖人，其出人也遠矣，猶且從師而問焉；今之眾人，其下聖人也亦遠矣，而恥學於師。</blockquote><p><strong>說明：</strong>突顯「恥學於師」是導致「聖益聖，愚益愚」的直接原因。</p></li>
+                            <li><strong>百工與士大夫對比：</strong><blockquote>巫、醫、樂師、百工之人，不恥相師；士大夫之族，曰師、曰弟子云者，則羣聚而笑之。</blockquote><p><strong>說明：</strong>以百工的開明反襯士大夫的愚昧，加強諷刺效果。</p></li>
+                        </ul>
+                    </div>
+                    <div class="technique-block">
+                        <h4>2. 舉例論證</h4>
+                        <p>引用具體事例，增強論證的真實性和說服力。</p>
+                        <blockquote>聖人無常師。孔子師郯子、萇弘、師襄、老聃。</blockquote>
+                        <p><strong>說明：</strong>以萬世師表孔子向多人學習為例，有力地證明了「聖人無常師」以及「師不必賢於弟子」的觀點。</p>
+                    </div>
+                    <div class="technique-block">
+                        <h4>3. 引用論證</h4>
+                        <p>引用權威言論，支持自己的觀點。</p>
+                        <blockquote>孔子曰：「三人行，則必有我師。」</blockquote>
+                        <p><strong>說明：</strong>引用孔子的名言，論證了「能者為師」的觀點，說明處處留心皆可學習，不應有尊卑貴賤之分。</p>
+                    </div>
+                </div>
+
+                <div class="technique-section">
+                    <h3>二、修辭手法</h3>
+                    <div class="technique-block">
+                        <h4>1. 反問</h4>
+                        <p>使用反問句加強語氣，使論點不言而喻。</p>
+                        <blockquote>人非生而知之者，孰能無惑？</blockquote>
+                        <p><strong>說明：</strong>強調了「有惑」是人的普遍狀態，從而引出解惑必須從師的必要性。</p>
+                    </div>
+                    <div class="technique-block">
+                        <h4>2. 頂真</h4>
+                        <p>利用句與句之間首尾相連的特點，使文氣貫通，邏輯緊密。</p>
+                        <blockquote>古之學者必有師。<strong>師</strong>者，所以傳道、受業、解惑也。人非生而知之者，孰能無<strong>惑</strong>？<strong>惑</strong>而不從師，其為惑也，終不解矣。</blockquote>
+                        <p><strong>說明：</strong>句與句環環相扣，層層遞進，使論證過程流暢有力。</p>
+                    </div>
+                    <div class="technique-block">
+                        <h4>3. 示現</h4>
+                        <p>將想像或過去的情景活靈活現地展現在讀者面前。</p>
+                        <blockquote>士大夫之族，曰師、曰弟子云者，則羣聚而笑之。問之，則曰：「彼與彼年相若也，道相似也。位卑則足羞，官盛則近諛。」</blockquote>
+                        <p><strong>說明：</strong>作者將士大夫嘲笑師道、以及他們私下議論的場景和言辭直接描寫出來，如同在讀者眼前上演，極具諷刺意味。</p>
+                    </div>
+                    <div class="technique-block">
+                        <h4>4. 善用感歎句</h4>
+                        <p>文中多次使用「嗟乎」、「嗚呼」、「惑矣」、「歟」等感歎句，使文章感情充沛。</p>
+                        <blockquote>嗟乎！師道之不傳也久矣！欲人之無惑也難矣！</blockquote>
+                        <p><strong>說明：</strong>直抒胸臆，表達了作者對時弊的慨歎、惋惜和憤慨，使文章的說理充滿了情感力量。</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 進階思辨 -->
+            <section id="thinking" class="page-section">
+                <h2>進階思辨</h2>
+                <div class="technique-block">
+                    <h4>議題一：網絡時代下，老師的角色與價值</h4>
+                    <p><strong>議題：</strong>在今天，網絡資訊發達，知識唾手可得，很多人認為「自學即可成才」，不再需要老師。你同意嗎？《師說》中「傳道、受業、解惑」的職責在現代社會應如何被重新演繹？</p>
+                    <p><strong>實例分析：</strong>許多人通過觀看YouTube教學影片、參與Coursera等線上課程、閱讀維基百科來學習新技能，例如程式設計、樂器演奏或外語。這些資源打破了時空限制，似乎削弱了傳統老師的必要性。然而，老師的價值不僅在於「授業」（傳遞知識），更在於「傳道」（塑造品德、價值觀）和「解惑」（針對個人化的疑難提供引導）。當學生在學習路上遇到瓶頸、感到迷惘，或需要建立正確的學術倫理和人生觀時，一個有經驗的老師能提供AI或影片無法給予的關懷、啟發和指引。例如，一位有經驗的寫作老師，不僅能教語法，更能啟發學生的創意思維，並在學生投稿被拒時給予鼓勵。這正是「點燃一團火」，而非「注滿一桶水」。</p>
+                </div>
+                <div class="technique-block">
+                    <h4>議題二：現代社會的「恥學於師」現象</h4>
+                    <p><strong>議題：</strong>韓愈批判的「位卑則足羞，官盛則近諛」現象，在現代職場或社會中是否存在？我們應如何克服這種心態？</p>
+                    <p><strong>實例分析：</strong>這種現象在現代依然普遍。例如，在企業中，一位資深的主管可能不願意向一位剛入職但精通最新數位行銷工具的年輕員工請教，擔心這樣會有損自己的權威，這就是「位卑則足羞」。反之，他可能會熱衷於參加由知名CEO主講的高價培訓課程，即使內容空泛，這也帶有「官盛則近諛」的影子。要克服這種心態，就需要真正理解《師說》的核心——「聞道有先後，術業有專攻」。一個人的價值不應由其職位或年齡定義，而應由其知識和能力決定。公司應建立「教學相長」的文化，鼓勵知識分享，讓資深員工的經驗與年輕員工的新技能互相結合，這樣才能促進個人與團隊的共同成長。</p>
+                </div>
+                <div class="technique-block">
+                    <h4>議題三：「聖人無常師」的現代啟示</h4>
+                    <p><strong>議題：</strong>孔子「三人行，必有我師焉」的學習態度，對我們建立「終身學習」的觀念有何啟示？</p>
+                    <p><strong>實例分析：</strong>「聖人無常師」意味著學習對象是廣泛且流動的。在知識快速更迭的今天，這給了我們極大的啟示。我們不僅要向學校的老師學習，更要向生活中的每一個人學習。例如，我們可以向孩子學習他們對新科技的直覺與好奇心；可以向外賣員學習他們對城市路線的驚人記憶力與規劃能力；可以在和朋友的閒聊中，學習到一個自己從未涉獵領域的有趣知識。這種「處處留心皆學問」的態度，是終身學習的基礎。它要求我們保持謙遜和開放的心態，承認自己的不足，並樂於從任何人身上發現閃光點。正如梁啟超所言：「片言之賜，皆我師也。」在一個複雜多變的世界裡，唯有如此，才能不斷進步，不被時代淘汰。</p>
+                </div>
+            </section>
+
+            <!-- 每日挑戰頁面 -->
+            <section id="challenge" class="page-section">
+                <h2>每日挑戰（共15題）</h2>
+                <p>完成所有題目後，點擊下方的「提交批改」按鈕查看分數和參考答案。</p>
+                <div id="score-display" style="display: none;"></div>
+                <form id="challenge-form"></form>
+                <button id="submit-answers-btn">提交批改</button>
+            </section>
+        </main>
+        <footer><p>《師說》溫習網頁 &copy; 2024</p></footer>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+    // --- 偽多頁面切換邏輯 ---
+    const navLinks = document.querySelectorAll('.nav-link');
+    const pages = document.querySelectorAll('.page-section');
+
+    function showPage(pageId) {
+        pages.forEach(page => { page.style.display = 'none'; });
+        const targetPage = document.getElementById(pageId);
+        if (targetPage) { targetPage.style.display = 'block'; }
+        navLinks.forEach(link => {
+            link.classList.toggle('active', link.dataset.page === pageId);
+        });
+        window.scrollTo(0, 0);
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPage(link.dataset.page);
+        });
+    });
+
+    // --- 每日名言邏輯 ---
+    const quotes = [ "三人行，必有我師焉。擇其善者而從之，其不善者而改之。——《論語》","國將興，必貴師而重傅；貴師而重傅，則法度存。——《荀子·大略》","凡學之道，嚴師為難。師嚴然後道尊，道尊然後民知敬學。——《禮記·學記》","經師易遇，人師難遭。——《北周書》","一日為師，終身為父。—— 明·吳承恩《西遊記》","善之本在教，教之本在師。—— 宋·李覯《廣潛書》","為學莫重於尊師。—— 清·譚嗣同《劉陽算學館敘》","片言之賜，皆我師也。—— 梁啟超","學無前後，達者為師。——《神仙傳》","不敬其師，雖聖學，終不入。—— 宋·朱熹","敏而好學，不恥下問。——《論語》","學而不思則罔，思而不學則殆。——《論語》","博學之，審問之，慎思之，明辨之，篤行之。——《禮記·中庸》","人之患，在好為人師。——《孟子》","青，取之於藍，而青於藍；冰，水為之，而寒於水。——《荀子·勸學》","學如逆水行舟，不進則退。——《增廣賢文》","聖人無常師。——《孔子家語》","溫故而知新，可以為師矣。——《論語》","事師如事父。——《呂氏春秋》","玉不琢，不成器；人不學，不知義。——《三字經》","平庸的老師只是敘述，好的老師解釋，優異的老師示範，偉大的老師啟發。—— 威廉·亞瑟·沃德","教育不是注滿一桶水，而是點燃一團火。—— 葉慈","使學生對教師尊敬的唯一源泉，在於教師的德和才。—— 愛因斯坦","我尤其要感謝上帝賜我生在蘇格拉底的時代。—— 柏拉圖","教是為了不需要教。—— 葉聖陶","要想學生好學，必須先生好學。—— 陶行知","一個人的力量是有限的，但如果他能從老師那裡借來智慧，那他就是巨人。—— 佚名","最偉大的老師是那種告訴你該往哪裡看，卻不告訴你該看到什麼的人。—— 亞莉珊卓·K·特倫福","老師是一根蠟燭，燃燒自己，照亮別人。—— 民間常用比喻","學者的四失：或失則多，或失則寡，或失則易，或失則止。——《禮記·學記》" ];
+    const today = new Date();
+    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+    document.getElementById('daily-quote').textContent = quotes[dayOfYear % quotes.length];
+
+    // --- 每日挑戰邏輯 ---
+    const questionPool = {
+        vocab: [ { q: "「師者，所以傳道、<strong>受</strong>業、解惑也」中的「受」字應解作：", a: "講授" }, { q: "「<strong>固</strong>先乎吾，吾從而師之」中的「固」字應解作：", a: "本來" }, { q: "「聖<strong>益</strong>聖，愚益愚」中的「益」字應解作：", a: "更加" }, { q: "「君子不<strong>齒</strong>」中的「齒」字應解作：", a: "提及" }, { q: "「作《師說》以<strong>貽</strong>之」中的「貽」字應解作：", a: "贈送" }, { q: "「今之眾人，其<strong>下</strong>聖人也亦遠矣」中的「下」字應解作：", a: "低於" }, { q: "「<strong>猶且</strong>從師而問焉」中的「猶且」應解作：", a: "尚且" } ],
+        mc: [ { q: "根據《師說》，作者認為老師最重要的職責是甚麼？", options: ["傳道", "受業", "解惑", "授業"], a: 0 }, { q: "韓愈在文中主要批判士大夫階層的哪一種錯誤心態？", options: ["好為人師", "小學而大遺", "聞道不分先後", "術業有專攻"], a: 1 }, { q: "「位卑則足羞，官盛則近諛」這句話最能反映出士大夫擇師的何種心態？", options: ["尊師重道", "以道為師", "不恥下問", "基於身份和地位的功利心態"], a: 3 }, { q: "作者引用孔子的言行，主要是為了論證哪個觀點？", options: ["弟子不必不如師", "師道之不傳也久矣", "人非生而知之者", "古之學者必有師"], a: 0 }, { q: "「聖益聖，愚益愚」一句運用了哪種論證方法？", options: ["舉例論證", "比喻論證", "對比論證", "歸納論證"], a: 2 }, { q: "作者以「巫、醫、樂師、百工之人」與「士大夫之族」作對比，其用意何在？", options: ["讚揚工匠的專業技能", "諷刺士大夫的驕矜和愚昧", "說明社會分工不同", "強調人人平等的觀念"], a: 1 }, { q: "《師說》的寫作目的是甚麼？", options: ["為了賺取稿費", "為了贈予李蟠，並闡明從師之道", "為了批評當時的皇帝", "為了記錄自己的學習心得"], a: 1 }, { q: "「吾師道也，夫庸知其年之先後生於吾乎？」表達了作者怎樣的擇師標準？", options: ["只向年長者學習", "只向地位高者學習", "以對方是否懂得道理為唯一標準", "必須選擇比自己賢能的人為師"], a: 2 } ],
+        long_medium: [ { q: "韓愈在《師說》中如何運用對比論證來批判「恥學於師」的時弊？試舉出其中兩組對比並加以說明。", a: "韓愈在文中主要運用了三組對比：\n1. **古之聖人與今之眾人對比**：聖人智慧遠超眾人，尚且從師；而眾人遠不及聖人，卻恥於從師。此對比突顯「恥學於師」會導致「聖益聖，愚益愚」的惡果。\n2. **為子擇師與於身恥師對比**：士大夫愛其子，會為他擇師；但對自己，卻恥於學習。此對比揭示了他們思想上的矛盾與「小學而大遺」的荒謬。\n3. **士大夫與百工之人對比**：地位較低的百工不恥相師，而士大夫卻羣聚而笑之。此對比諷刺了士大夫的驕矜與無知，其智慧反而不及百工。\n（答中任何兩組並簡要說明即可）", criteria: "能準確理解題意，觀點清晰（1分），論述合乎邏輯，能引用原文或例子作證（2分），語言表達流暢（1分）。", maxScore: 4 } ],
+        long_hard: [ { q: "「弟子不必不如師，師不必賢於弟子，聞道有先後，術業有專攻。」這句話體現了怎樣的師生關係觀？這種觀念對消解韓愈當時「士大夫之族」的擇師心態有何作用？", a: "這句話體現了一種平等、相對、教學相長的師生關係觀。它指出：\n1. **知識的相對性**：「聞道有先後，術業有專攻」說明知識是多元的，沒有人能全知全能。\n2. **師生角色的流動性**：「弟子不必不如師，師不必賢於弟子」打破了傳統上老師絕對權威的觀念。\n\n**作用**：\n此觀念能有效消解士大夫「位卑則足羞，官盛則近諛」的功利心態。它告訴士大夫，學習的對象應是「道」本身，而非對方的年齡、地位，從而徹底瓦解他們拜師的心理障礙。", criteria: "能準確理解題意，觀點清晰（1分），論述合乎邏輯，能引用原文或例子作證（2分），語言表達流暢（1分）。", maxScore: 4 } ],
+        long_advanced: [ { q: "【進階思辨】在現今這個資訊爆炸、AI崛起的時代，許多人認為透過網絡和人工智能已能解決大部分疑難，「老師」的角色似乎被削弱。請結合《師說》中「傳道、受業、解惑」的觀點，論證現代社會中實體老師（human teacher）不可被完全取代的價值。", a: "即使在AI時代，實體老師的價值依然不可取代，這可以從「傳道、受業、解惑」三個層面重新演繹：\n1. **解惑的深度**：AI能解答知識性的「惑」，但老師能提供基於共情的、個性化的引導，解決學生情感與心理的深層困惑。\n2. **受業的溫度**：AI能高效「授業」，但老師能營造有溫度的學習氛圍，通過互動與激勵，點燃學生的學習熱情。\n3. **傳道的楷模**：這是老師最核心的價值。「傳道」即是價值觀、品德和人格的塑造。老師的言傳身教、人格魅力是AI無法模擬的「人師」典範。", criteria: "能準確理解題意，觀點清晰（1分），論述合乎邏輯，能緊扣「傳道、受業、解惑」作答（2分），語言表達流暢（1分）。", maxScore: 4 } ]
+    };
+
+    const challengeForm = document.getElementById('challenge-form');
+    if (challengeForm) {
+        const dailySeed = today.getFullYear() * 1000 + today.getMonth() * 100 + today.getDate();
+        function createPseudoRandom(seed) { let state = seed; return function() { let x = Math.sin(state++) * 10000; return x - Math.floor(x); }; }
+        function shuffle(array, seed) {
+            let currentIndex = array.length, temp, randomIndex;
+            const random = createPseudoRandom(seed);
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(random() * currentIndex);
+                currentIndex--;
+                temp = array[currentIndex];
+                array[currentIndex] = array[randomIndex];
+                array[randomIndex] = temp;
+            }
+            return array;
+        }
+
+        const dailyVocab = shuffle([...questionPool.vocab], dailySeed).slice(0, 5);
+        const dailyMC = shuffle([...questionPool.mc], dailySeed + 1).slice(0, 7);
+        const dailyLM = shuffle([...questionPool.long_medium], dailySeed + 2).slice(0, 1);
+        const dailyLH = shuffle([...questionPool.long_hard], dailySeed + 3).slice(0, 1);
+        const dailyLA = shuffle([...questionPool.long_advanced], dailySeed + 4).slice(0, 1);
+        
+        let questionsHTML = '';
+        let questionCounter = 0;
+        let simpleQuestions = [];
+        
+        questionsHTML += '<div class="question-block"><h3>一、字詞語譯（每題1分）</h3>';
+        dailyVocab.forEach(q => {
+            questionsHTML += `<div class="question-item" id="q-${questionCounter}"><p>${questionCounter + 1}. ${q.q}</p><input type="text" name="q${questionCounter}"></div>`;
+            simpleQuestions.push({ answer: q.a, score: 1 });
+            questionCounter++;
+        });
+        questionsHTML += '</div>';
+
+        questionsHTML += '<div class="question-block"><h3>二、選擇題（每題2分）</h3>';
+        dailyMC.forEach((q, i) => {
+            let optionsHTML = '';
+            q.options.forEach((opt, index) => { optionsHTML += `<div class="mc-option"><label><input type="radio" name="q${questionCounter}" value="${index}"> ${opt}</label></div>`; });
+            questionsHTML += `<div class="question-item" id="q-${questionCounter}"><p>${questionCounter + 1}. ${q.q}</p>${optionsHTML}</div>`;
+            simpleQuestions.push({ answer: q.a.toString(), score: 2, options: q.options });
+            questionCounter++;
+        });
+        questionsHTML += '</div>';
+
+        questionsHTML += '<div class="question-block"><h3>三、問答題（每題4分）</h3>';
+        [...dailyLM, ...dailyLH, ...dailyLA].forEach(q => {
+            questionsHTML += `<div class="question-item" id="q-${questionCounter}"><p>${questionCounter + 1}. ${q.q} <strong>(此題最高可獲 ${q.maxScore} 分)</strong></p><textarea name="q${questionCounter}"></textarea><div class="model-answer" style="display:none;"><h4>參考答案及評分標準</h4><p>${q.a.replace(/\n/g, '<br>')}</p><p><strong>評分標準：</strong>${q.criteria}</p></div></div>`;
+            questionCounter++;
+        });
+        questionsHTML += '</div>';
+
+        challengeForm.innerHTML = questionsHTML;
+        
+        document.getElementById('submit-answers-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            let totalScore = 0;
+            const formData = new FormData(challengeForm);
+
+            simpleQuestions.forEach((q, index) => {
+                const userAnswer = formData.get(`q${index}`);
+                const questionDiv = document.getElementById(`q-${index}`);
+                let isCorrect = (userAnswer && q.answer.toString().trim() === userAnswer.trim());
+
+                let feedbackDiv = questionDiv.querySelector('.feedback');
+                if (!feedbackDiv) {
+                    feedbackDiv = document.createElement('div');
+                    feedbackDiv.className = 'feedback';
+                    questionDiv.appendChild(feedbackDiv);
+                }
+
+                if (isCorrect) {
+                    totalScore += q.score;
+                    questionDiv.classList.add('correct');
+                    questionDiv.classList.remove('incorrect');
+                    feedbackDiv.textContent = '答案正確！';
+                } else {
+                    questionDiv.classList.add('incorrect');
+                    questionDiv.classList.remove('correct');
+                    const correctAnswerText = q.options ? q.options[q.answer] : q.answer;
+                    feedbackDiv.innerHTML = `答案錯誤。正確答案：<strong>${correctAnswerText}</strong>`;
+                }
+            });
+
+            for (let i = simpleQuestions.length; i < questionCounter; i++) {
+                 document.querySelector(`#q-${i} .model-answer`).style.display = 'block';
+            }
+
+            const scoreDisplay = document.querySelector('#challenge #score-display');
+            scoreDisplay.innerHTML = `客觀題得分：${totalScore} 分。<br>請根據問答題的參考答案及評分標準，自行評估主觀題得分。`;
+            scoreDisplay.style.display = 'block';
+            
+            this.style.display = 'none';
+            showPage('challenge');
+        });
+    }
+
+    window.showPage = showPage;
+});
+</script>
+</body>
+</html>
